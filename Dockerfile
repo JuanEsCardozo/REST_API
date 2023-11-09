@@ -22,6 +22,8 @@ COPY ./app.py /code
 
 COPY ./config.py /code
 
+COPY ./api_test_app.py /code
+
 EXPOSE 5000
 
 CMD ["python", "app.py", "--host", "0.0.0.0", "--port", "5000"]
