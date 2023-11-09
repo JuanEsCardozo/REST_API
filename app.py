@@ -93,6 +93,54 @@ def get_csv_file(blob_name, bucket_name):
     except Exception as e:
         print(e)
         return False
+    
+def date_cast(df):
+
+    try:
+        cast = lambda iso_string: datetime.fromisoformat(iso_string.replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S')
+        df['datetime'] = df['datetime'].map(cast)
+        return df
+    except Exception as e:
+        print("An error occurred:", str(e))
+
+@app.errorhandler(Exception)
+def generic_error(e):
+    response = jsonify({"error": "An error occurred", "message": str(e)})
+    response.status_code = 500  # Set the HTTP status code for the response
+    return response
+
+@app.route('/upload/departments', methods=['POST'])
+def upload_departments():
+    df = get_csv_file(DEPARTMENTS_PATH, BUCKET_NAME)
+    result = write_to_cloud_sql(df, DEPARTMENTS_SCHEMA)
+    return jsonify({'message': result}), 200
+
+@app.route('/upload/employees', methods=['POST'])
+def upload_employees():
+    df = get_csv_file(EMPLOYEES_PATH, BUCKET_NAME)
+    casted_df = date_cast(df)
+    result = write_to_cloud_sql(casted_df, EMPLOYEES_SCHEMA)
+    return jsonify({'message': result}), 200
+
+@app.route('/upload/jobs', methods=['POST'])
+def upload_jobs():
+    df = get_csv_file('jobs/jobs.csv', BUCKET_NAME)
+    result = write_to_cloud_sql(df, JOBS_SCHEMA)
+    return jsonify({'message': result}), 200
+
+@app.route('/report/requirement1', methods=['GET'])
+def report1():
+    query = REQUIEREMENT1_QUERY
+    result = pd.DataFrame(get_data(query))
+    result = result.to_json(orient='records')
+    return result, 200
+
+@app.route('/report/requirement2', methods=['GET'])
+def report2():
+    query = REQUIEREMENT2_QUERY
+    result = pd.DataFrame(get_data(query))
+    result = result.to_json(orient='records')
+    return result, 200
 
 if __name__ == '__main__':
     app.run(debug=True)
