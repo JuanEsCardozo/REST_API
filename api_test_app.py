@@ -13,7 +13,7 @@ class TestAPI(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(data['message'], 'Data Successfully Uploaded')
+        print(self.assertEqual(data['message'], 'Data Successfully Uploaded'))
 
-if _name_ == '_main_':
+if __name__ == '__main__':
    unittest.main()
